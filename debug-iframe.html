@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  body { background:#000; color:#00ff41; font-family:'Courier New',monospace; padding:20px; font-size:12px; }
+  .log { margin:4px 0; }
+  .warn { color:#ffdd57; }
+  .err { color:#ff4444; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script>
+const out = document.getElementById('out');
+function log(msg, cls='') {
+  const d = document.createElement('div');
+  d.className = 'log ' + cls;
+  d.textContent = new Date().toISOString().slice(11,23) + ' » ' + msg;
+  out.appendChild(d);
+}
+
+log('Página cargada');
+log('window.innerWidth: ' + window.innerWidth);
+log('window.innerHeight: ' + window.innerHeight);
+log('document.hasFocus: ' + document.hasFocus());
+log('visibilityState: ' + document.visibilityState);
+
+// Test setInterval
+let ticks = 0;
+let lastTick = Date.now();
+const iv = setInterval(() => {
+  ticks++;
+  const now = Date.now();
+  const elapsed = now - lastTick;
+  lastTick = now;
+  if (ticks <= 5) log('setInterval tick #'+ticks+' elapsed: '+elapsed+'ms', elapsed > 50 ? 'warn' : '');
+  if (ticks === 10) {
+    clearInterval(iv);
+    log('setInterval: OK, 10 ticks completos');
+    testRAF();
+  }
+}, 16);
+
+// Test requestAnimationFrame
+function testRAF() {
+  let rafTicks = 0;
+  let lastRAF = performance.now();
+  function rafLoop(ts) {
+    rafTicks++;
+    const elapsed = ts - lastRAF;
+    lastRAF = ts;
+    if (rafTicks <= 5) log('rAF tick #'+rafTicks+' elapsed: '+elapsed.toFixed(1)+'ms', elapsed > 50 ? 'warn err' : '');
+    if (rafTicks < 10) requestAnimationFrame(rafLoop);
+    else log('rAF: OK, 10 frames completos');
+  }
+  requestAnimationFrame(rafLoop);
+}
+
+// Test visibility change
+document.addEventListener('visibilitychange', () => {
+  log('visibilitychange: ' + document.visibilityState, 'warn');
+});
+
+window.addEventListener('focus', () => log('window FOCUS', 'warn'));
+window.addEventListener('blur', () => log('window BLUR', 'warn'));
+</script>
+</body>
+</html>
