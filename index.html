@@ -3,10 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  body { background:#000; color:#00ff41; font-family:'Courier New',monospace; padding:20px; font-size:12px; }
-  .log { margin:4px 0; }
-  .warn { color:#ffdd57; }
-  .err { color:#ff4444; }
+  body { background:#000; color:#00ff41; font-family:'Courier New',monospace; padding:10px; font-size:11px; }
+  .warn { color:#ffdd57; } .err { color:#ff4444; }
 </style>
 </head>
 <body>
@@ -15,55 +13,49 @@
 const out = document.getElementById('out');
 function log(msg, cls='') {
   const d = document.createElement('div');
-  d.className = 'log ' + cls;
-  d.textContent = new Date().toISOString().slice(11,23) + ' » ' + msg;
+  d.className = cls;
+  d.textContent = '» ' + msg;
   out.appendChild(d);
 }
 
-log('Página cargada');
-log('window.innerWidth: ' + window.innerWidth);
-log('window.innerHeight: ' + window.innerHeight);
-log('document.hasFocus: ' + document.hasFocus());
-log('visibilityState: ' + document.visibilityState);
+// Medidas reales
+log('innerWidth: ' + window.innerWidth);
+log('innerHeight: ' + window.innerHeight);
+log('body.clientWidth: ' + document.body.clientWidth);
+log('body.clientHeight: ' + document.body.clientHeight);
+log('body.scrollHeight: ' + document.body.scrollHeight);
 
-// Test setInterval
-let ticks = 0;
-let lastTick = Date.now();
-const iv = setInterval(() => {
-  ticks++;
-  const now = Date.now();
-  const elapsed = now - lastTick;
-  lastTick = now;
-  if (ticks <= 5) log('setInterval tick #'+ticks+' elapsed: '+elapsed+'ms', elapsed > 50 ? 'warn' : '');
-  if (ticks === 10) {
-    clearInterval(iv);
-    log('setInterval: OK, 10 ticks completos');
-    testRAF();
-  }
-}, 16);
+// Crear canvas y medir
+const canvas = document.createElement('canvas');
+canvas.style.width = '100%';
+canvas.style.height = '200px';
+document.body.appendChild(canvas);
+const rect = canvas.getBoundingClientRect();
+log('canvas rect.width: ' + rect.width);
+log('canvas rect.height: ' + rect.height);
+log('canvas rect.top: ' + rect.top);
+log('canvas rect.bottom: ' + rect.bottom);
 
-// Test requestAnimationFrame
-function testRAF() {
-  let rafTicks = 0;
-  let lastRAF = performance.now();
-  function rafLoop(ts) {
-    rafTicks++;
-    const elapsed = ts - lastRAF;
-    lastRAF = ts;
-    if (rafTicks <= 5) log('rAF tick #'+rafTicks+' elapsed: '+elapsed.toFixed(1)+'ms', elapsed > 50 ? 'warn err' : '');
-    if (rafTicks < 10) requestAnimationFrame(rafLoop);
-    else log('rAF: OK, 10 frames completos');
-  }
-  requestAnimationFrame(rafLoop);
-}
+// Simular exactamente lo que hace el juego
+const HUD_H = 28;
+const CTRL_H = 110;
+const canvasH = Math.max(200, window.innerHeight - HUD_H - CTRL_H);
+const playerY = canvasH - 36;
+const invLastRow = 4; // 4 rows
+const invEndY = 40 + invLastRow * (24 + 12); // IH+IPADY
+log('canvasH calculado: ' + canvasH, canvasH > 400 ? 'warn' : '');
+log('playerY: ' + playerY);
+log('invEndY (fila más baja): ' + invEndY);
+log('espacio naves->jugador: ' + (playerY - invEndY) + 'px', (playerY-invEndY) < 50 ? 'err' : '');
 
-// Test visibility change
-document.addEventListener('visibilitychange', () => {
-  log('visibilitychange: ' + document.visibilityState, 'warn');
-});
+// Test: ¿las naves ya tocan al jugador desde el inicio?
+const deathLine = playerY - 30;
+log('deathLine: ' + deathLine);
+log('¿inv toca deathLine al inicio? ' + (invEndY >= deathLine), invEndY >= deathLine ? 'err' : '');
 
-window.addEventListener('focus', () => log('window FOCUS', 'warn'));
-window.addEventListener('blur', () => log('window BLUR', 'warn'));
+// Scroll test
+log('pageYOffset: ' + window.pageYOffset, window.pageYOffset > 0 ? 'warn' : '');
+log('scrollY: ' + window.scrollY, window.scrollY > 0 ? 'warn' : '');
 </script>
 </body>
 </html>
